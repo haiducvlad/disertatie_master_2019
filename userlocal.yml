@@ -1,0 +1,10 @@
+--- 
+ - hosts: localhost
+   
+   tasks: 
+    - name: "create deployment user"
+      user: 
+       createhome: true
+       name: userfinal
+       state: present
+

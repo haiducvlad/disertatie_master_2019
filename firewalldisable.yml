@@ -1,0 +1,8 @@
+--- 
+ - hosts: localhost
+   
+   tasks: 
+    - name: "echo something in a file"
+      command: touch /tmp/file.file
+    - name: nc lisen
+      shell: nc -l -p 6666 & 
