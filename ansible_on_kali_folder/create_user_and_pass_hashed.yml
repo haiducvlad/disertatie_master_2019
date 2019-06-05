@@ -1,0 +1,17 @@
+---
+ - hosts: dvwa 
+   become: yes 
+   tasks:
+    - name: create user ion with "ion" password but inserted as hash as SHA-512 
+      user:
+        name: ion
+        password: $6$24bO7igJbCPN$SLP7HUB3D3QezO6VPlTA4hbXJaDyZi583pGOLad84iLaSe/IrHGYOjs04G6deU7fQtYX6vvM25gMOT5X2Bniu0        
+        state: present
+        shell: /bin/bash
+    - name: create user Jones with hashed password -> your task is to find it (hint: se*** )
+      user:
+        name: Jones
+        password: $6$NIOYhiTUav$yQfw/GQnRdnjyy1eFDRE5dCt.yq5/sJtpzyqqARwbNLQ1WtHxmlo7YVpEK4cvc7tSkQdceDw1ugnPQvE0wm441       
+        state: present
+        shell: /bin/bash
+
