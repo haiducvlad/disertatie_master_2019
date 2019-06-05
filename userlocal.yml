@@ -8,13 +8,13 @@
       user: 
        createhome: true
        shell: /bin/bash
-       name: student5
+       name: student
        state: present
        groups: sudo
 
     - name: set keys
       authorized_key:
-       user: student5
+       user: student
        state: present
-       key: "{{ lookup('file', '/home/student5/.ssh/stud5.key.pub') }}"
+       key: "{{ lookup('file', '/home/student/.ssh/id_rsa.pub') }}"
        
