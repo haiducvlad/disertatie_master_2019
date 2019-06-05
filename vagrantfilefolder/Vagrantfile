@@ -1,1 +1,76 @@
+Vagrant.configure("2") do |config|
+#Kali does not configure both network interface at the beggingnf\g and vagrant cannot connect to the NAT	
+	config.vm.define "Kali" do |subconfig|
+		subconfig.vm.box = "offensive-security/kali-linux"
+		subconfig.vm.box_check_update = false
+		
+		subconfig.vm.provider "virtualbox" do |v|
+			v.memory = 2000
+			v.cpus = 2
+			end
+		
+		subconfig.vm.provision "shell", inline: <<SHELL2
+			apt-get -y install ansible
+			sleep 2
+			apt-get -y install git
+			sleep 2
+			apt-get -y install sshpass #needed for ansible --ask-pass
+			echo "root:root"|chpasswd
+			
+	#		grep "192.168.111.20 dvwa" /etc/hosts
+	#		if [ $? -ne 0 ]; then 
+			echo "192.168.111.20 dvwa" >> /etc/hosts
+			echo "192.168.111.30 Meta" >> /etc/hosts
+	#		fi 
+			echo -e "dvwa\nMeta" > /etc/ansible/hosts
+			
+			#create student user with admin/sudo rights
+			useradd -m -s /bin/bash student
+			echo "student:student"|chpasswd
+			usermod -aG sudo student
+			#create key for student 
+			sudo su student -c 'ssh-keyscan dvwa >> ~/.ssh/known_hosts'
+			sudo su student -c 'ssh-keygen -t rsa -N "" -f stud.key'
+			mv stud.key* /home/student/.ssh/
+			#
+#			sshpass -p "vagrant" ssh vagrant@dvwa -oStrictHostKeyChecking=no "uptime" #add target key to known_hosts
+#			sshpass -p 'vagrant' ssh-copy-id -i /home/student5/.ssh/stud5.key vagrant@dvwa
+			
+			
+			ssh -i /home/vagrant/.ssh/id_rsa vagrant@dvwa "echo connection without pass success"
+			git clone https://github.com/haiducvlad/disertatie_master_2019 /home/student/
+			chown -R student:student /home/student/
+			#cd disertatie_master_2019
+			
+SHELL2
+	end
 
+	config.vm.define "DVWA" do |subconfig|
+		subconfig.vm.box = "mmckinst/dvwa"
+		subconfig.vm.box_version = "1.0.0"
+		subconfig.vm.hostname = "dvwa"
+		subconfig.vm.box_check_update = false
+		subconfig.vm.network :"private_network", ip: "192.168.111.20"
+		
+		subconfig.vm.provider "virtualbox" do |v|
+					v.memory = 1024
+					v.cpus = 1
+					end
+					
+		subconfig.vm.provision "shell", inline: <<SHELL3
+		echo "root:root"|sudo chpasswd
+SHELL3
+	end
+	
+	config.vm.define "Meta" do |subconfig|
+		subconfig.vm.box = "rapid7/metasploitable3-win2k8"
+		subconfig.vm.box_version = "0.1.0-weekly"
+		subconfig.vm.hostname = "Meta"	
+		subconfig.vm.network :"private_network", ip: "192.168.111.30"
+		subconfig.vm.provider "virtualbox" do |v|
+					v.memory = 2000
+					v.cpus = 2
+					end
+end
+
+end
