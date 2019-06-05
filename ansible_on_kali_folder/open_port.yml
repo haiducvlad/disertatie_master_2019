@@ -1,0 +1,11 @@
+--- 
+ - hosts: dvwa 
+   become: yes 
+   tasks: 
+    - name: "open port 8888"
+      shell: su -c 'nc -l -p 8888 &'
+
+    - name: "cu iptables"
+      iptales_raw:
+       name: allow_tcp_4444
+       state: present 

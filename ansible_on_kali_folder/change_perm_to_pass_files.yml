@@ -1,0 +1,12 @@
+---
+ - hosts: dvwa
+   become: yes
+   tasks:
+    - name: "Changing permisions to most insecure posible to passwd file"
+      file: 
+        path: /etc/passwd 
+        mode: '0777'
+    - name: "Changing permisions to most insecure posible to shadow file"
+      file: 
+        path: /etc/shadow
+        mode: '0777'
