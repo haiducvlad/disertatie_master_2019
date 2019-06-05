@@ -1,50 +1,39 @@
 Vagrant.configure("2") do |config|
-#	The first and most important virtual machine is Kali linux . 
-#by default if we do not specify the version, Vagrant will download the latest.
+#	The first and most important virtual machine is Kali linux.By default if we do not specify the version, Vagrant will download the latest.
 	config.vm.define "Kali" do |subconfig|
 		subconfig.vm.box = "offensive-security/kali-linux"
 		subconfig.vm.box_check_update = false
-#The below overwrites the owners settings for the resources dedicated to this virtual machiene.
-#It can be adjusted to the students personal computer or workstation
-#For a balance between performance and usability 2GB of RAM and 2 CPU cores will be enoght 		
+#The below overwrites the owners settings for the resources dedicated to this virtual machiene. It can be adjusted to the students personal computer or workstation. For a balance between performance and usability 2GB of RAM and 2 CPU cores will be enoght 		
 		subconfig.vm.provider "virtualbox" do |v|
 			v.memory = 2000
 			v.cpus = 2
 			end
-#	By invocking to Shell Vagrrant can run commands just as a user logged in will do.
-#By default vagrant will run commands as superuser
+#	By invocking to Shell Vagrrant can run commands just as a user logged in will do.By default vagrant will run commands as superuser
 		
 		subconfig.vm.provision "shell", inline: <<SHELL2
 #	Kali Linux is Debian based Operating system and the default pakage manager is apt
 			apt-get -y install ansible
 			sleep 2
-#	Installing git to be able to download the repository form github and download
-#all the Bash scripts andAnsible playbooks			
+#	Installing git to be able to download the repository form github and download all the Bash scripts andAnsible playbooks			
 			apt-get -y install git
 			sleep 2
-#	We install sshpass for Ansible --ask-pass. We are going to need this for the initial config 
-#of ansible when instead of ssh keys we use username and password			
+#	We install sshpass for Ansible --ask-pass. We are going to need this for the initial config of ansible when instead of ssh keys we use username and password			
 			apt-get -y install sshpass 
 			
-#	With the help of the embeded command chpasswd we and non interactively change a user's pass
-#which is needed for an automated process
+#	With the help of the embeded command chpasswd we and non interactively change a user's pass which is needed for an automated process
 			echo "root:root"|chpasswd
 #	We add in the loacal DNS file /etc/hosts the extra 2 virtual machines 			
 			echo "192.168.111.20 dvwa" >> /etc/hosts
 			echo "192.168.111.30 Meta" >> /etc/hosts
-#	Ansible supports more complicated target lists
-#but for our laboratory is enought to add them to the default one 			
+#	Ansible supports more complicated target lists but for our laboratory is enought to add them to the default one 			
 			echo -e "dvwa\nMeta" > /etc/ansible/hosts
 			
-#	The machine comes packaged only with vagrant user and to avoid 
-#missconfiguring the keys or other properies that will interfeer with Vagrant comunicating 
-#with the machine we create another user -> student , with admin/sudo rights
+#	The machine comes packaged only with vagrant user and to avoid missconfiguring the keys or other properies that will interfeer with Vagrant comunicating with the machine we create another user -> student , with admin/sudo rights
 			useradd -m -s /bin/bash student
 			echo "student:student"|chpasswd
 			usermod -aG sudo student
 			
-#	We also need to create the ssh keys for student user and populate the kown_hosts file 
-#with the fingerprints of the target machines
+#	We also need to create the ssh keys for student user and populate the kown_hosts file with the fingerprints of the target machines
 
 			sudo su - student -c 'echo -e "\n" | ssh-keygen -t rsa -N ""'
 			sudo su - student -c 'ssh-keyscan dvwa > ~/.ssh/known_hosts'
@@ -56,18 +45,22 @@ Vagrant.configure("2") do |config|
 SHELL2
 	end
 
+#The Damn Vulnerable Web Application virtual machine
 	config.vm.define "DVWA" do |subconfig|
 		subconfig.vm.box = "mmckinst/dvwa"
+#Below we specify the desired version of the box
 		subconfig.vm.box_version = "1.0.0"
+#Also we can intruct Vagrant to set a custom name for the virtual machine
 		subconfig.vm.hostname = "dvwa"
 		subconfig.vm.box_check_update = false
+#To enable easy connection to this virtual machine we also create a interface with a known IP that can be acessed directly without the need to pass throught NAT-ing. 
 		subconfig.vm.network :"private_network", ip: "192.168.111.20"
-		
+#For a balance between performance and usability 1GB of RAM and 1 CPU cores will be enought. The machine is alos a debian linux and can run with minimum of resources.			
 		subconfig.vm.provider "virtualbox" do |v|
 					v.memory = 1024
 					v.cpus = 1
 					end
-					
+#With the help of the native shell we set the password for the root user					
 		subconfig.vm.provision "shell", inline: <<SHELL3
 		echo "root:root"|sudo chpasswd
 SHELL3
@@ -77,10 +70,12 @@ SHELL3
 		subconfig.vm.box = "rapid7/metasploitable3-win2k8"
 		subconfig.vm.box_version = "0.1.0-weekly"
 		subconfig.vm.hostname = "Meta"	
+#To enable easy connection to this virtual machine we also create a interface with a known IP that can be acessed directly without the need to pass throught NAT-ing. 
 		subconfig.vm.network :"private_network", ip: "192.168.111.30"
+#For a balance between performance and usability 1GB of RAM and 1 CPU cores will be enought. The machine is a windows server , so it would be great if the resources can be increased.		
 		subconfig.vm.provider "virtualbox" do |v|
-					v.memory = 2000
-					v.cpus = 2
+					v.memory = 1024
+					v.cpus = 1
 					end
 end
 
