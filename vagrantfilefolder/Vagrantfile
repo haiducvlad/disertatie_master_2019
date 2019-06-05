@@ -1,46 +1,57 @@
 Vagrant.configure("2") do |config|
-#Kali does not configure both network interface at the beggingnf\g and vagrant cannot connect to the NAT	
+#	The first and most important virtual machine is Kali linux . 
+#by default if we do not specify the version, Vagrant will download the latest.
 	config.vm.define "Kali" do |subconfig|
 		subconfig.vm.box = "offensive-security/kali-linux"
 		subconfig.vm.box_check_update = false
-		
+#The below overwrites the owners settings for the resources dedicated to this virtual machiene.
+#It can be adjusted to the students personal computer or workstation
+#For a balance between performance and usability 2GB of RAM and 2 CPU cores will be enoght 		
 		subconfig.vm.provider "virtualbox" do |v|
 			v.memory = 2000
 			v.cpus = 2
 			end
+#	By invocking to Shell Vagrrant can run commands just as a user logged in will do.
+#By default vagrant will run commands as superuser
 		
 		subconfig.vm.provision "shell", inline: <<SHELL2
+#	Kali Linux is Debian based Operating system and the default pakage manager is apt
 			apt-get -y install ansible
 			sleep 2
+#	Installing git to be able to download the repository form github and download
+#all the Bash scripts andAnsible playbooks			
 			apt-get -y install git
 			sleep 2
-			apt-get -y install sshpass #needed for ansible --ask-pass
-			echo "root:root"|chpasswd
+#	We install sshpass for Ansible --ask-pass. We are going to need this for the initial config 
+#of ansible when instead of ssh keys we use username and password			
+			apt-get -y install sshpass 
 			
-	#		grep "192.168.111.20 dvwa" /etc/hosts
-	#		if [ $? -ne 0 ]; then 
+#	With the help of the embeded command chpasswd we and non interactively change a user's pass
+#which is needed for an automated process
+			echo "root:root"|chpasswd
+#	We add in the loacal DNS file /etc/hosts the extra 2 virtual machines 			
 			echo "192.168.111.20 dvwa" >> /etc/hosts
 			echo "192.168.111.30 Meta" >> /etc/hosts
-	#		fi 
+#	Ansible supports more complicated target lists
+#but for our laboratory is enought to add them to the default one 			
 			echo -e "dvwa\nMeta" > /etc/ansible/hosts
 			
-			#create student user with admin/sudo rights
+#	The machine comes packaged only with vagrant user and to avoid 
+#missconfiguring the keys or other properies that will interfeer with Vagrant comunicating 
+#with the machine we create another user -> student , with admin/sudo rights
 			useradd -m -s /bin/bash student
 			echo "student:student"|chpasswd
 			usermod -aG sudo student
-			#create key for student 
-			sudo su student -c 'ssh-keyscan dvwa >> ~/.ssh/known_hosts'
-			sudo su student -c 'ssh-keygen -t rsa -N "" -f stud.key'
-			mv stud.key* /home/student/.ssh/
-			#
-#			sshpass -p "vagrant" ssh vagrant@dvwa -oStrictHostKeyChecking=no "uptime" #add target key to known_hosts
-#			sshpass -p 'vagrant' ssh-copy-id -i /home/student5/.ssh/stud5.key vagrant@dvwa
 			
+#	We also need to create the ssh keys for student user and populate the kown_hosts file 
+#with the fingerprints of the target machines
+
+			sudo su - student -c 'echo -e "\n" | ssh-keygen -t rsa -N ""'
+			sudo su - student -c 'ssh-keyscan dvwa > ~/.ssh/known_hosts'
 			
-			ssh -i /home/vagrant/.ssh/id_rsa vagrant@dvwa "echo connection without pass success"
-			git clone https://github.com/haiducvlad/disertatie_master_2019 /home/student/
+#Finaly, for the inital setup we clone the repository to retreive all the scripts and playbooks
+			git clone https://github.com/haiducvlad/disertatie_master_2019 /home/student/laborator
 			chown -R student:student /home/student/
-			#cd disertatie_master_2019
 			
 SHELL2
 	end
