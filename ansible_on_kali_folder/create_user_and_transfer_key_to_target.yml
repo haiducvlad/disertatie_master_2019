@@ -1,0 +1,20 @@
+--- 
+ - hosts: dvwa
+   become: true
+   remote_user: vagrant
+
+   tasks: 
+    - name: "Create student user with sudo rights"
+      user: 
+       createhome: true
+       shell: /bin/bash
+       name: student
+       state: present
+       groups: sudo
+
+    - name: "Transfer public ssh keys to target for student user"
+      authorized_key:
+       user: student
+       state: present
+       key: "{{ lookup('file', '/home/student/.ssh/id_rsa.pub') }}"
+       
