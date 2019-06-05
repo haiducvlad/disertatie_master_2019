@@ -1,10 +1,20 @@
 --- 
- - hosts: localhost
-   
+ - hosts: dvwa
+   become: true
+   remote_user: vagrant
+
    tasks: 
     - name: "create deployment user"
       user: 
        createhome: true
-       name: userfinal
+       shell: /bin/bash
+       name: student5
        state: present
+       groups: sudo
 
+    - name: set keys
+      authorized_key:
+       user: student5
+       state: present
+       key: "{{ lookup('file', '/home/student5/.ssh/stud5.key.pub') }}"
+       
